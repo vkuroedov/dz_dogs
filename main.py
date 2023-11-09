@@ -4,7 +4,6 @@ from pydantic import BaseModel
 
 app = FastAPI()
 
-
 class DogType(str, Enum):
     terrier = "terrier"
     bulldog = "bulldog"
@@ -40,8 +39,19 @@ post_db = [
 
 @app.get('/')
 def root():
-    # ваш код здесь
-    ...
+    '''
+    Root
+    '''
+    return {'Hello'}
 
-# ваш код здесь
-...
+@app.get('/doble/{x}')
+def doble(x: int) -> int:
+    return x*2
+
+@app.post('/post')
+def post():
+    pass
+
+@app.get('/test')
+def test_fnc():
+    return 'All good'
