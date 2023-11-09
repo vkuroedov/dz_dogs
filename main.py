@@ -1,5 +1,6 @@
 from enum import Enum
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
+from fastapi import param_functions
 from pydantic import BaseModel
 
 app = FastAPI()
@@ -37,21 +38,29 @@ post_db = [
 ]
 
 
-@app.get('/')
+@app.get('/', summary='Root')
 def root():
-    '''
-    Root
-    '''
     return {'Hello'}
-
-@app.get('/doble/{x}')
-def doble(x: int) -> int:
-    return x*2
 
 @app.post('/post')
 def post():
     pass
 
-@app.get('/test')
-def test_fnc():
-    return 'All good'
+@app.get('/dog', summary='Get Dogs')
+def get_dog(kind: DogType):
+    return dogs_db[DogType.kind]
+
+@app.get('/dog/{pk}', summary='Get Dog By Pk')
+def get_dogs_by_pk(pk: int):
+    return dogs_db[pk]
+
+@app.post('/dog', response_model=Dog, summary='Create Dog')
+def create_dog(dog: Dog):
+    existing_pk = ...
+    if existing_pk:
+        raise HTTPException(status_code=409,
+                            detail='The specified PK already exists.')
+    
+    ...
+
+    return Dog(...)
