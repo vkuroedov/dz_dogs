@@ -1,6 +1,5 @@
 from enum import Enum
 from fastapi import FastAPI, HTTPException
-from fastapi import param_functions
 from pydantic import BaseModel
 from typing import List
 
@@ -61,38 +60,31 @@ def get_dog(kind: DogType = None):
         return [i for i in dogs_db.values() if i.kind == kind]
 
 # добавляем собакена в базу данных. Если собака с таким pk уже существует - выкидываем 409
+# тут и далее считаем, что pk и ключ dogs_db должны быть равны и уникальны
 @app.post('/dog', response_model=Dog, summary='Create Dog')
 def create_dog(dog: Dog):
     if dog.pk in [i.pk for i in dogs_db.values()]:
-        raise HTTPException(status_code=409,
-                            detail='The specified PK already exists')
+        raise HTTPException(status_code=409, detail='The specified PK already exists')
     else:
-        dogs_db.update({list(dogs_db.keys())[-1] + 1: dog})
+        dogs_db.update({dog.pk: dog})
         return dog
 
 # ищем собакена по pk. Если записи с таким PK не существует - возвращаем 409
 @app.get('/dog/{pk}', response_model=Dog, summary='Get Dog By Pk')
 def get_dog_by_pk(pk: int):
     if len([i for i in dogs_db.values() if i.pk == pk]) == 0:
-        raise HTTPException(status_code=409,
-                            detail='No such PK in database')
+        raise HTTPException(status_code=409, detail='No such PK in database')
     else:
         return [i for i in dogs_db.values() if i.pk == pk][0]
     
-# апдетйим собакена по PK. Если такого РК не существует - даем 409 
+# апдетйим собакена по PK. Если такого РК не существует - возвращаем 409 
+# pk в ручке - текущий pk собаки, информацию о которой хотим обновить
+# pk в request_body - новый pk собаки (поменяла паспорт при достижении 14 лет)
 @app.patch('/dog/{pk}', response_model=Dog, summary='Update Dog')
 def create_dog(pk: int, dog: Dog):
-    if len([i for i in dogs_db.values() if i.pk == pk]) == 0:
-        raise HTTPException(status_code=409,
-                            detail='No such PK in database')
+    if pk not in dogs_db.keys():
+        raise HTTPException(status_code=409, detail='No such PK in database')
     else:
-        k = [k for k, v in dogs_db.items() if v.pk == pk] # список записей с таким pk (по идее должна быть одна, но на всякий удалим все)
-
-        #удаление записей 
-        for i in k:
-            del dogs_db[i]
-
-        #добавление записи
-        dogs_db.update({list(dogs_db.keys())[-1] + 1: dog})
+        del dogs_db[pk] # удаляем запись по текущему pk
+        dogs_db.update({dog.pk: dog}) #добавление записи с новыми атрибутами
         return dog
-    
