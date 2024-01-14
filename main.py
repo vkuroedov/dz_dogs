@@ -5,6 +5,8 @@ from typing import List
 
 app = FastAPI()
 
+#comment
+
 class DogType(str, Enum):
     terrier = "terrier"
     bulldog = "bulldog"
